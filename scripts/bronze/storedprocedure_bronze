@@ -1,0 +1,115 @@
+CREATE OR ALTER PROCEDURE bronze.load_bronze_layer
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @start_time DATETIME, 
+            @end_time DATETIME,
+            @rows_loaded INT;
+
+    BEGIN TRY
+        SET @start_time = GETDATE();
+        PRINT '======================================';
+        PRINT 'Bronze Layer Load Started';
+        PRINT 'Start Time: ' + CAST(@start_time AS VARCHAR);
+        PRINT '======================================';
+
+        -- =====================================
+        -- CUSTOMERS
+        -- =====================================
+        PRINT 'Loading Customers...';
+
+        TRUNCATE TABLE bronze.customers;
+
+        BULK INSERT bronze.customers
+        FROM 'C:\Data\customers.csv'
+        WITH (
+            FIRSTROW = 2,
+            FIELDTERMINATOR = ',',
+            ROWTERMINATOR = '\n',
+            TABLOCK
+        );
+
+        SELECT @rows_loaded = COUNT(*) FROM bronze.customers;
+        PRINT 'Customers Loaded: ' + CAST(@rows_loaded AS VARCHAR);
+
+
+        -- =====================================
+        -- PRODUCTS
+        -- =====================================
+        PRINT 'Loading Products...';
+
+        TRUNCATE TABLE bronze.products;
+
+        BULK INSERT bronze.products
+        FROM 'C:\Data\products.csv'
+        WITH (
+            FIRSTROW = 2,
+            FIELDTERMINATOR = ',',
+            ROWTERMINATOR = '\n',
+            TABLOCK
+        );
+
+        SELECT @rows_loaded = COUNT(*) FROM bronze.products;
+        PRINT 'Products Loaded: ' + CAST(@rows_loaded AS VARCHAR);
+
+
+        -- =====================================
+        -- ORDERS
+        -- =====================================
+        PRINT 'Loading Orders...';
+
+        TRUNCATE TABLE bronze.orders;
+
+        BULK INSERT bronze.orders
+        FROM 'C:\Data\orders.csv'
+        WITH (
+            FIRSTROW = 2,
+            FIELDTERMINATOR = ',',
+            ROWTERMINATOR = '\n',
+            TABLOCK
+        );
+
+        SELECT @rows_loaded = COUNT(*) FROM bronze.orders;
+        PRINT 'Orders Loaded: ' + CAST(@rows_loaded AS VARCHAR);
+
+
+        -- =====================================
+        -- ORDER ITEMS
+        -- =====================================
+        PRINT 'Loading Order Items...';
+
+        TRUNCATE TABLE bronze.order_items;
+
+        BULK INSERT bronze.order_items
+        FROM 'C:\Data\order_items.csv'
+        WITH (
+            FIRSTROW = 2,
+            FIELDTERMINATOR = ',',
+            ROWTERMINATOR = '\n',
+            TABLOCK
+        );
+
+        SELECT @rows_loaded = COUNT(*) FROM bronze.order_items;
+        PRINT 'Order Items Loaded: ' + CAST(@rows_loaded AS VARCHAR);
+
+
+        -- =====================================
+        -- COMPLETION LOG
+        -- =====================================
+        SET @end_time = GETDATE();
+
+        PRINT '======================================';
+        PRINT 'Bronze Layer Load Completed Successfully';
+        PRINT 'End Time: ' + CAST(@end_time AS VARCHAR);
+        PRINT '======================================';
+
+    END TRY
+    BEGIN CATCH
+        PRINT '======================================';
+        PRINT 'ERROR IN BRONZE LOAD';
+        PRINT ERROR_MESSAGE();
+        PRINT '======================================';
+    END CATCH
+END;
+GO
